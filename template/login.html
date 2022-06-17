@@ -23,7 +23,7 @@
             <a class="not-on" id="registered" href="javascript:void(0);">注册</a>
             <div class="fix"></div>
 
-            <form type="POST" action="" id="landing-content" data-form="ajax">
+            <form type="POST" @submit.prevent="submit"  id="landing-content" >
                 <input type="hidden" name="csrfmiddlewaretoken"
                     value="ATVqa3VWx0vdl5KGcfhDx3l3EjAmcluacR4lCLph0eUZzj8H74pC4Gpm8gbXF0iF">
                 <div class="auth-inp">
@@ -39,21 +39,15 @@
                 <!--错误信息提示-->
                 <div class="inp" style="margin-top: 0">
                     <label>
-                        <input class="inp-input" data-block="true" type="text" data-required="请输入用户名或者邮箱" id="user_name"
-                            name="user_name" placeholder="用户名或者邮箱" />
+                        <input class="inp-input" data-block="true" type="text" data-required="请输入用户名或者邮箱" v-model.lazy="username" placeholder="用户名或者邮箱" />
                     </label>
                 </div>
-                <div class="inp"><label><input class="inp-input" data-block="true" type="password" data-required="请输入密码"
-                            id="pwd" name="pwd" placeholder="密码" /></label>
+                <div class="inp"><label><input class="inp-input" data-block="true" type="password" data-required="请输入密码" v-model.lazy="passwd" placeholder="密码" /></label>
                 </div>
-                <div class="inp"><label><input class="inp-input" data-block="true" type="text" id="code" name="code"
-                            data-required="请输入验证码" placeholder="输入验证码" /></label></div>
-                <div class="code-box" style="cursor: pointer;"><img id="code_img" src="/static/img/verify-code.png" alt="" />
-                </div>
-                <button id="login" type="submit" class="login">登录</button>
+                <button id="login" type="button" class="login" @click="login">登录</button>
                 <div id="bottom">
-                    <a href="index.html" id="registeredtxt">回到首页</a>
-                    <a href="forget-pwd.html" id="forgotpassword" onclick="">忘记密码</a>
+                    <a href="/index" id="registeredtxt">回到首页</a>
+                    <a href="/forgetPwd" id="forgotpassword" onclick="">忘记密码</a>
                 </div>
             </form>
         </div>
@@ -80,7 +74,39 @@
     <script type="text/javascript" src="/static/js/sweetalert.min.js"></script>
     <script type="text/javascript" src="/static/js/verJs.js"></script>
     <script type="text/javascript" src="/static/js/login.js"></script>
+    <script type="text/javascript" src="/static/js/vue.js"></script>
+    <script type="text/javascript" src="/static/js/axios.mini.js"></script>
+
     <script type="text/javascript">
+        new Vue({
+            el:".main",
+            data:{
+               username:"",
+               passwd:""
+            },
+
+            methods:{
+                login:
+                function (event) {
+                    axios({
+                        method: 'post',
+                        url: '/user/login',
+                        data: {
+                            username: this.username,
+                            passwd: this.passwd
+                        }
+                    }).then(function (response) {
+                       if (response.data.code === "0"){
+                           window.location.href = "/index";
+                       }
+                   })
+                }
+            }
+        })
+
+
+
+
         $("#code_img").click(function () {
 
         });
