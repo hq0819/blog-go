@@ -2,9 +2,12 @@ package main
 
 import (
 	"blog/controller"
-	"fmt"
+	"blog/model"
+	"blog/util"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/gofiber/fiber/v2/middleware/skip"
 	"github.com/gofiber/template/html"
@@ -20,23 +23,31 @@ func main() {
 	app.Static("/static", "/static")
 	handler := recover.New()
 	app.Use(handler)
+	instance := util.GetInstance()
+
 	//登录拦截
 	app.Use(skip.New(func(ctx *fiber.Ctx) error {
-		store := session.New()
+		store := session.New(session.Config{Storage: instance})
 		session, _ := store.Get(ctx)
 		u := session.Get("user")
-		fmt.Println(u)
 		println(session.ID())
 		if u == nil {
 			return ctx.Render("login", nil)
 		}
 		return ctx.Next()
 	}, func(c *fiber.Ctx) bool {
-		fmt.Println(c.Path() == `/user/login`)
 		if c.Path() == `/user/login` {
 			return true
 		}
 		return false
+	}))
+
+	app.Use(requestid.New())
+
+	app.Use(logger.New(logger.Config{
+		Format:     "${pid} ${locals:requestid} ${status} - ${method} ${path}\n",
+		TimeFormat: "02-Jan-2006",
+		TimeZone:   "Asia/hangzhou",
 	}))
 	//页面控制器
 	app.Get("/index", controller.Index)
@@ -53,6 +64,10 @@ func main() {
 	//业务
 	group := app.Group("/user")
 	group.Post("/login", controller.GetLogin)
+
+	app.Get("/test", func(ctx *fiber.Ctx) error {
+		return ctx.Render("test", model.User{Username: "heqin", Passwd: "123"})
+	})
 
 	log.Println(app.Listen(":8002"))
 
